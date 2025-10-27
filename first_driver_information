@@ -3,5 +3,22 @@ This is a basic driver to understand the basic framework of a driver see the pro
 Steps to do
 1. Clone the  ldd_hello.c and Makefile 
 2. make 
-2. clear the kernel messge by writing 
+3. Once make is successful, check the resulted files
+      ls 
+you can see lot of files , out of that ldd_hello.ko is our kernel driver file
+3. clear the kernel messge by writing 
       sudo dmesg -c
+4. load the driver to kernel
+      sudo insmod ldd_hello.ko
+5. if it is success, check the kernel msg with
+      sudo dmesg 
+6. check whether the driver is actually loaded to the kernel with;
+      lsmod
+and you must see ldd_hello driver
+7. unload the driver 
+      sudo rmmod ldd_hello.ko
+8. if its successful, you can see the kernel msg
+      sudo dmesg
+9. check whether driver is actually unloaded
+      lsmod
+
