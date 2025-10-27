@@ -1,0 +1,7 @@
+This is a basic driver to understand the basic framework of a driver see the process of loading and unloading the driver from the kernel.
+
+Steps to do
+1. Clone the  ldd_hello.c and Makefile 
+2. make 
+2. clear the kernel messge by writing 
+      sudo dmesg -c
