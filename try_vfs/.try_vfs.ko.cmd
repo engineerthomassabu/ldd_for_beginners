@@ -1,1 +1,0 @@
-savedcmd_/home/ubuntu/ldd/ldd_for_beginners/try_vfs/try_vfs.ko := ld -r -m elf_x86_64 -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o /home/ubuntu/ldd/ldd_for_beginners/try_vfs/try_vfs.ko /home/ubuntu/ldd/ldd_for_beginners/try_vfs/try_vfs.o /home/ubuntu/ldd/ldd_for_beginners/try_vfs/try_vfs.mod.o
