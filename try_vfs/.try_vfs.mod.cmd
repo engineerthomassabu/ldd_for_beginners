@@ -1,0 +1,1 @@
+savedcmd_/home/ubuntu/ldd/ldd_for_beginners/try_vfs/try_vfs.mod := printf '%s\n'   try_vfs.o | awk '!x[$$0]++ { print("/home/ubuntu/ldd/ldd_for_beginners/try_vfs/"$$0) }' > /home/ubuntu/ldd/ldd_for_beginners/try_vfs/try_vfs.mod
