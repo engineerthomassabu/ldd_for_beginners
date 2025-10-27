@@ -1,0 +1,45 @@
+This is a basic driver to understand the concept of virtual file system in linux proc_fs 
+
+Before trying this, need to read and understand what is virtual file system
+
+what is proc fs in linux 
+
+Steps to do
+1. Clone the  try_vfs.c and Makefile 
+2. make 
+3. Once make is successful, check the resulted files
+      ls 
+you can see lot of files , out of that try_vfs.ko is our kernel driver file
+3. clear the kernel messge by writing 
+      sudo dmesg -c
+4. check lsmod and check whether try_vfs driver is there. Ideally it should not be there
+
+5. check ls /proc and check whether the driver entry is available or not, it should not be there as we havent loaded the driver yet
+
+6. load the driver to kernel
+      sudo insmod try_vfs.ko
+7. if it is success, check the kernel msg with
+      sudo dmesg 
+8. check whether the driver is actually loaded to the kernel with;
+      lsmod
+and you must see try_vfs driver
+
+9. try ls /proc and check whether the driver entry is done ?
+	ls /proc
+   if its success, you can see hello_driver_proc_entry in  /proc
+ 
+10. try to see the type of the proc entry fie and see the response. You can see that the file is empty because its a vitrual file only.
+	file /proc/hello_driver_proc_entry
+
+11. try to read what is inside the proc_entry and you can see and input output error since we havent defined the proc operations in this example
+	cat /proc/hello_driver_proc_entry
+
+12. unload the driver 
+      sudo rmmod try_vfs
+13. if its successful, you can see the kernel msg
+      sudo dmesg
+14. check whether driver is actually unloaded
+      lsmod
+15. check whether the proc entry is deleted by checking 
+	ls /proc
+

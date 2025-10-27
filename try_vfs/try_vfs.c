@@ -8,7 +8,7 @@ MODULE_DESCRIPTION ("BEGINNER TUTORIAL TO UNDERSTAND VIRTUAL FILE STYSEM (PROC)"
 MODULE_VERSION("1.1.0");
 
 
-static struct proc_dir_entry *proc_entry;
+static struct proc_dir_entry *hello_driver_proc_entry;
 
 struct proc_ops hello_driver_proc_ops ={ 
 					
@@ -33,7 +33,7 @@ static void  __exit hello_driver_exit(void)
 {
 	printk("unloading hello_driver from kernel started \n");
 
-	proc_remove(proc_entry);
+	proc_remove(hello_driver_proc_entry);
 
 	printk("hello_driver unloaded from kernel and removed the  /proc entry \n");
 }
