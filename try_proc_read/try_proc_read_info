@@ -8,7 +8,7 @@ check the prof_fs headerfile in git
 https://github.com/torvalds/linux/blob/master/include/linux/proc_fs.h#L40
 
 Steps to do
-1. Clone the  try_proc_read.c and Makefile 
+1. Clone  try_proc_read 
 2. make 
 3. Once make is successful, check the resulted files
       ls 
@@ -36,14 +36,23 @@ and you must see try_proc_read driver
 
 11. try to read what is inside the proc_entry and you can see the acknowledgement message.
 	cat /proc/hello_driver_proc_read
-        
+        Now we are seeing the kernel msg from the kernel space.
 
-12. unload the driver 
+12. inorder to read the kernel msg from the user space, run the userspace python app.
+    python3 user_space_app.py 
+
+    if everything is good we would be able to see the kernel acknowledgement 
+ 
+13. unload the driver 
       sudo rmmod try_proc_read
-13. if its successful, you can see the kernel msg
+14. if its successful, you can see the kernel msg
       sudo dmesg
 14. check whether driver is actually unloaded
       lsmod
-15. check whether the proc entry is deleted by checking 
+16. check whether the proc entry is deleted by checking 
 	ls /proc
+
+
+
+
 
