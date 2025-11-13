@@ -1,0 +1,1 @@
+savedcmd_/home/ubuntu/ldd/ldd_for_beginners/char_driver_mutex/character_driver.mod := printf '%s\n'   character_driver.o | awk '!x[$$0]++ { print("/home/ubuntu/ldd/ldd_for_beginners/char_driver_mutex/"$$0) }' > /home/ubuntu/ldd/ldd_for_beginners/char_driver_mutex/character_driver.mod

@@ -4,13 +4,15 @@
 #include <linux/cdev.h>
 #include <linux/uaccess.h>
 #include <linux/device.h>
+#include <linux/mutex.h>
+#include <linux/delay.h>
 
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Thomas Sabu");
 MODULE_DESCRIPTION("Character Device Driver code with autyo device node creation");
 
-#define DEVICE_NAME "myclassdev"
+#define DEVICE_NAME "mymutexdev"
 #define BUFFER_SIZE 256
 
 
@@ -20,34 +22,74 @@ static char kernel_buffer[BUFFER_SIZE]; // Data buffer
 static ssize_t data_size =0;
 static struct class *my_class;
 
+static DEFINE_MUTEX(my_mutex);      // Declare and initialize mutex
+static int device_open_count = 0;   // Track concurrent opens
+
+
+
 static int my_open(struct inode *inode, struct file *file)
 {
-	pr_info ("character device file opened \n");  // pr_info is printk() with the KERN_INFO priority
+	/* Prevent multiple simultaneous opens */
+   	 if (!mutex_trylock(&my_mutex)) 
+	 {
+        	pr_warn("%s: Device is busy, cannot open\n", DEVICE_NAME);
+        	return -EBUSY;  // Device already in use
+    	}
+
+    	if (device_open_count > 0) 
+	{
+        	pr_warn("%s: Device already opened by another process\n", DEVICE_NAME);
+        	mutex_unlock(&my_mutex);
+        	return -EBUSY;
+   	}
+	device_open_count++;
+
+	pr_info ("%s Device opened succesfully \n",DEVICE_NAME);  // pr_info is printk() with the KERN_INFO priority
+	mutex_unlock(&my_mutex);
+
 	return 0;
 }
 
 static int my_release(struct inode *inode, struct file *file)
 {
-    pr_info("character_device: Closed\n");
-    return 0;
+	mutex_lock(&my_mutex);
+	device_open_count--;
+    	if(device_open_count <0)
+		device_open_count =0;
+	pr_info("%s Device Closed\n",DEVICE_NAME);
+    	mutex_unlock(&my_mutex);
+	return 0;
 }
 
 static ssize_t my_read(struct file *file, char __user *buf, size_t len, loff_t *offset)
 {
 
-//	size_t bytes_read;
+	size_t bytes_to_read;
+	
+	/* Lock critical section */
+   	if (mutex_lock_interruptible(&my_mutex))
+        	return -ERESTARTSYS;  // Interrupted by signal
 
-    	if (*offset >= data_size)
-        	return 0; // EOF
+   	if (*offset >= data_size) 
+	{
+        	mutex_unlock(&my_mutex);
+        	return 0;  // EOF
+    	}
+	bytes_to_read = min_t(size_t,len, data_size - *offset);
 
-	if (len > data_size - *offset)
-        	len = data_size - *offset;
-
-	if (copy_to_user(buf, kernel_buffer + *offset, len))
+	if (copy_to_user(buf, kernel_buffer + *offset, bytes_to_read))
+	{	
+		mutex_unlock(&my_mutex);
         	return -EFAULT;
+	}
 
-   	*offset += len;
-   	pr_info("myclassdev: Read %zu bytes\n", len);
+	
+   	
+	 *offset += bytes_to_read;
+   	pr_info("%s: Read %zd bytes\n", DEVICE_NAME, bytes_to_read);
+
+/* 👇 Add delay here — simulate long write operation */
+/*    msleep(10000);  // 5 seconds sleep while mutex is still held */
 	return len;
 }
 	
@@ -55,19 +97,28 @@ static ssize_t my_read(struct file *file, char __user *buf, size_t len, loff_t *
 
 static ssize_t my_write(struct file *file, const char __user *buf, size_t len, loff_t *offset)
 {
-	if (len > BUFFER_SIZE)
-        len = BUFFER_SIZE;
+	size_t bytes_to_write;
 
-	if (copy_from_user(kernel_buffer, buf, len))
+	if (mutex_lock_interruptible(&my_mutex))
+        	return -ERESTARTSYS;
+
+    	bytes_to_write = min_t(size_t,len, BUFFER_SIZE);
+
+    	if (copy_from_user(kernel_buffer, buf, bytes_to_write)) 
+	{
+        	mutex_unlock(&my_mutex);
         	return -EFAULT;
+    	}	
 
-	data_size = len;
-	kernel_buffer[len] = '\0';
+    	data_size = bytes_to_write;
+    	kernel_buffer[data_size] = '\0';
+    	pr_info("%s: Written %zd bytes: %s\n", DEVICE_NAME, bytes_to_write, kernel_buffer);
 
-	pr_info("myclassdev: Written %zu bytes: %s\n", len, kernel_buffer);
-    	return len;	
-
+    	mutex_unlock(&my_mutex);
+    	return bytes_to_write;
 }
+
+
 static struct file_operations fops = 
 {
 	.owner = THIS_MODULE,
@@ -102,9 +153,11 @@ static int __init my_cdevice_init(void)
         	return ret;
     	}
 
-	/* Step 4: Create class */
+	/* Step 3: Create class */
 	my_class = class_create("myclass");
-    	if (IS_ERR(my_class)) 
+
+
+	if (IS_ERR(my_class)) 
 	{
         	ret = PTR_ERR(my_class);
         	pr_err("%s: Failed to create class (%d)\n", DEVICE_NAME, ret);  //pr_err is printk() with KERN_ERR priority
@@ -112,6 +165,7 @@ static int __init my_cdevice_init(void)
         	unregister_chrdev_region(dev_num, 1);
         	return ret;
     	}
+
 
 	/* Step 4: Create device node */
 	if (IS_ERR(device_create(my_class, NULL, dev_num, NULL, DEVICE_NAME))) 
@@ -122,7 +176,8 @@ static int __init my_cdevice_init(void)
         	unregister_chrdev_region(dev_num, 1);
         	return -1;
 	}
-
+	mutex_init(&my_mutex); // initialize mutex
+			       //
     	pr_info("%s: Driver loaded successfully\n", DEVICE_NAME);
     	pr_info("Device created: /dev/%s (Major %d Minor %d)\n",DEVICE_NAME, MAJOR(dev_num), MINOR(dev_num));
     	return 0;
@@ -135,6 +190,8 @@ static void __exit my_cdevice_exit(void)
 	cdev_del(&my_cdev);
     	unregister_chrdev_region(dev_num, 1);
     	pr_info("%s: Driver unloaded\n", DEVICE_NAME);
+    	
+
 }
 
 module_init(my_cdevice_init);
