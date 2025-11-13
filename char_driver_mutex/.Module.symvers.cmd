@@ -1,1 +1,0 @@
-savedcmd_/home/ubuntu/ldd/ldd_for_beginners/char_driver_mutex/Module.symvers :=  scripts/mod/modpost -M -m -a      -o /home/ubuntu/ldd/ldd_for_beginners/char_driver_mutex/Module.symvers -T /home/ubuntu/ldd/ldd_for_beginners/char_driver_mutex/modules.order -i Module.symvers -e 

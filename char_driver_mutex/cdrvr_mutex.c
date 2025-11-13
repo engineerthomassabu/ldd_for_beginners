@@ -89,8 +89,10 @@ static ssize_t my_read(struct file *file, char __user *buf, size_t len, loff_t *
    	pr_info("%s: Read %zd bytes\n", DEVICE_NAME, bytes_to_read);
 
 /* 👇 Add delay here — simulate long write operation */
-/*    msleep(10000);  // 5 seconds sleep while mutex is still held */
-	return len;
+    	msleep(5000);  // 5 seconds sleep while mutex is still held */
+
+	mutex_unlock(&my_mutex);
+	return bytes_to_read;
 }
 	
 
@@ -113,7 +115,8 @@ static ssize_t my_write(struct file *file, const char __user *buf, size_t len, l
     	data_size = bytes_to_write;
     	kernel_buffer[data_size] = '\0';
     	pr_info("%s: Written %zd bytes: %s\n", DEVICE_NAME, bytes_to_write, kernel_buffer);
-
+	
+	msleep(5000);
     	mutex_unlock(&my_mutex);
     	return bytes_to_write;
 }

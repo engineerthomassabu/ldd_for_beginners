@@ -1,1 +1,0 @@
-savedcmd_/home/ubuntu/ldd/ldd_for_beginners/char_driver_mutex/cdrvr_mutex.mod := printf '%s\n'   cdrvr_mutex.o | awk '!x[$$0]++ { print("/home/ubuntu/ldd/ldd_for_beginners/char_driver_mutex/"$$0) }' > /home/ubuntu/ldd/ldd_for_beginners/char_driver_mutex/cdrvr_mutex.mod

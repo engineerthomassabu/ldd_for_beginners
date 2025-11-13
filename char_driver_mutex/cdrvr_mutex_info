@@ -1,0 +1,49 @@
+This is a basic character driver with struct class to create and delete device node automatically. This uses mutex concept which can handle multiple user process accessing 
+a single file
+
+Before trying this, learn what is character driver, major number and minor number /dev folder and concept of mutual exclusion 
+
+
+Steps to do
+1. Clone   
+2. make 
+3. Once make is successful, check the resulted files
+      ls 
+you can see lot of files , out of that character_driver.ko is our kernel driver file
+3. clear the kernel messge by writing 
+      sudo dmesg -c
+4. check lsmod and check whether character_driver is there. Ideally it should not be there
+
+5. check ls /dev/ and check whether the driver entry is available or not, it should not be there as we havent loaded the driver yet
+
+6. load the driver to kernel
+      sudo insmod cdrvr.ko
+7. if it is success, check the kernel msg with
+      sudo dmesg
+      note the major and minor nos
+8. check whether the driver is actually loaded to the kernel with;
+      lsmod
+and you must see cdrvr_mutex
+
+9. try ls  and check whether the device entry is done ?
+	ls /dev/
+   if its success, we can see mymutexdev in  /dev
+ 
+10. try to write some data to the file
+	echo "first" | sudo tee /dev/mymutexdev 
+        check sudo dmesg and we can see the write is happened
+
+11. try reading the file
+	sudo cat /dev/mychardev
+        check sudo dmesg and we can see that the read is successful
+
+12.Now we can try to access the file from two user process. for that open one more terminal so that we can use both terminals by switching between each
+
+	In the first terminal try writing to the file
+        immediately go to the next terminal and try to read the file
+        we can see that , we got the msg that the device is busy.
+     
+  
+13. unload the driver 
+      sudo rmmod character_driver
+
